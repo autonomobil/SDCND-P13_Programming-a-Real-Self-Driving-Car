@@ -7,11 +7,14 @@ from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
+from scipy.spatial import KDTree
 import tf
 import cv2
 import yaml
+import time
 
 STATE_COUNT_THRESHOLD = 3
+SAVE_TRAINING_IMGS = 1
 
 class TLDetector(object):
     def __init__(self):
@@ -59,6 +62,28 @@ class TLDetector(object):
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
+
+    def save_img(self, light, state):
+
+        if SAVE_TRAINING_IMGS and self.img_count % 20 == 0: 
+
+            file_name = "IMG_" + str(time.time()).replace('.','') + '.jpg'
+            #cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+            cv_image = self.bridge.imgmsg_to_cv2(light, "bgr8")
+            img_path = ''
+
+            if state == 0:
+                img_path = "./light_classification/IMGS/RED/" + file_name
+            elif state == 1:
+                img_path = "./light_classification/IMGS/YELLOW/" + file_name
+            elif state == 2:
+                img_path = "./light_classification/IMGS/GREEN/" + file_name
+            else:
+                img_path = "./light_classification/IMGS/UNKNOWN/" + file_name
+
+            cv2.imwrite(img_path, cv_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+
+        self.img_count += 1
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -145,6 +170,9 @@ class TLDetector(object):
             return light_wp, state
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
+
+
+
 
 if __name__ == '__main__':
     try:
