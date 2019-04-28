@@ -41,7 +41,7 @@ class Controller(object):
         self.wheel_radius   = wheel_radius
         self.last_time     = rospy.get_time()
 
-    def control(self, *args, **kwargs):
+    def control(linear_vel,angular_vel,current_vel,dbw_enabled):
         if not dbw_enabled:
             self.throttle_controller.reset()
             return 0.0,0.0,0.0
