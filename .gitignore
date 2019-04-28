@@ -6,3 +6,5 @@ devel
 profile.tmp
 
 .vscode
+
+ros/src/CMakeLists\.txt
