@@ -14,7 +14,6 @@ import yaml
 import time
 
 STATE_COUNT_THRESHOLD = 3
-SAVE_TRAINING_IMGS = 1
 
 class TLDetector(object):
     def __init__(self):
@@ -23,7 +22,17 @@ class TLDetector(object):
         self.pose = None
         self.waypoints = None
         self.camera_image = None
+        self.image_appeared = False
         self.lights = []
+
+        self.bridge = CvBridge()
+        self.light_classifier = TLClassifier()
+        self.listener = tf.TransformListener()
+
+        self.state = TrafficLight.UNKNOWN
+        self.last_state = TrafficLight.UNKNOWN
+        self.last_wp = -1
+        self.state_count = 0
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -43,14 +52,7 @@ class TLDetector(object):
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
-        self.bridge = CvBridge()
-        self.light_classifier = TLClassifier()
-        self.listener = tf.TransformListener()
 
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
-        self.last_wp = -1
-        self.state_count = 0
 
         rospy.spin()
 
@@ -62,28 +64,6 @@ class TLDetector(object):
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
-
-    def save_img(self, light, state):
-
-        if SAVE_TRAINING_IMGS and self.img_count % 20 == 0: 
-
-            file_name = "IMG_" + str(time.time()).replace('.','') + '.jpg'
-            #cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-            cv_image = self.bridge.imgmsg_to_cv2(light, "bgr8")
-            img_path = ''
-
-            if state == 0:
-                img_path = "./light_classification/IMGS/RED/" + file_name
-            elif state == 1:
-                img_path = "./light_classification/IMGS/YELLOW/" + file_name
-            elif state == 2:
-                img_path = "./light_classification/IMGS/GREEN/" + file_name
-            else:
-                img_path = "./light_classification/IMGS/UNKNOWN/" + file_name
-
-            cv2.imwrite(img_path, cv_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-
-        self.img_count += 1
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
