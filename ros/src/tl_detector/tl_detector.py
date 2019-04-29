@@ -52,7 +52,7 @@ class TLDetector(object):
         else:
             sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
 
-        tl_detection_rate = rospy.Rate(10)
+        tl_detection_rate = rospy.Rate(5)
         while not rospy.is_shutdown():
             self.get_traffic_lights()
             tl_detection_rate.sleep()
