@@ -21,7 +21,7 @@ as well as to verify your TL classifier.
 
 '''
 
-LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 200  # Number of waypoints we will publish.  You can change this number
 MAX_DECELERATE = 0.5
 
 class WaypointUpdater(object):
@@ -31,7 +31,8 @@ class WaypointUpdater(object):
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint
+        # below
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
         rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb, queue_size=1)
 
@@ -64,14 +65,14 @@ class WaypointUpdater(object):
 
         # check direction of closest waypoint
         closest_coord = self.waypoints_2d[closest_idx]
-        prev_coord = self.waypoints_2d[closest_idx-1]
+        prev_coord = self.waypoints_2d[closest_idx - 1]
 
         # hyperplane stuff
         cl_vect = np.array(closest_coord)
         prev_vect = np.array(prev_coord)
         pos_vect = np.array([x, y])
 
-        val = np.dot(cl_vect-prev_vect, pos_vect-cl_vect)
+        val = np.dot(cl_vect - prev_vect, pos_vect - cl_vect)
 
         if val > 0:
             closest_idx = (closest_idx + 1) % len(self.waypoints_2d)
@@ -80,8 +81,8 @@ class WaypointUpdater(object):
     def publish_waypoints(self, closest_waypoint_idx):
         lane = Lane()
         lane.header = self.base_waypoints.header
-        base_waypoints = self.base_waypoints.waypoints[closest_waypoint_idx:closest_waypoint_idx+LOOKAHEAD_WPS]
-        if(self.stopline_wp_idx==-1) or (self.stopline_wp_idx>=(closest_waypoint_idx+LOOKAHEAD_WPS)):
+        base_waypoints = self.base_waypoints.waypoints[closest_waypoint_idx:closest_waypoint_idx + LOOKAHEAD_WPS]
+        if(self.stopline_wp_idx == -1) or (self.stopline_wp_idx >= (closest_waypoint_idx + LOOKAHEAD_WPS)):
            lane.waypoints = base_waypoints
         else:
            lane.waypoints = self.decelerate_waypoints(base_waypoints,closest_waypoint_idx)
@@ -91,14 +92,14 @@ class WaypointUpdater(object):
         new_waypoints = []
         for i, wp_orig in enumerate(waypoints): 
             nwp = Waypoint()
-            nwp.pose=wp_orig.pose
-            stop_idx = max(self.stopline_wp_idx-closest_idx-2,0)
-            dist=self.distance(waypoints,i,stop_idx)
-            vel=math.sqrt(2*dist*MAX_DECELERATE)
-            if(vel<1):
-              vel=0
+            nwp.pose = wp_orig.pose
+            stop_idx = max(self.stopline_wp_idx - closest_idx - 2,0)
+            dist = self.distance(waypoints,i,stop_idx)
+            vel = math.sqrt(2 * dist * MAX_DECELERATE)
+            if(vel < 1):
+              vel = 0
             #Keep speed limit
-            nwp.twist.twist.linear.x=min(vel,wp_orig.twist.twist.linear.x)
+            nwp.twist.twist.linear.x = min(vel,wp_orig.twist.twist.linear.x)
             new_waypoints.append(nwp)
         return new_waypoints
  
@@ -113,12 +114,13 @@ class WaypointUpdater(object):
             self.waypoints_tree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
+        # TODO: Callback for /traffic_waypoint message.  Implement
         self.stopline_wp_idx = msg.data
    
 
     def obstacle_cb(self, msg):
-        # TODO: Callback for /obstacle_waypoint message. We will implement it later
+        # TODO: Callback for /obstacle_waypoint message.  We will implement it
+        # later
         pass
 
     def get_waypoint_velocity(self, waypoint):
@@ -129,9 +131,8 @@ class WaypointUpdater(object):
 
     def distance(self, waypoints, wp1, wp2):
         dist = 0
-        def dl(a, b): return math.sqrt(
-            (a.x-b.x)**2 + (a.y-b.y)**2 + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
+        def dl(a, b): return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2)
+        for i in range(wp1, wp2 + 1):
             dist += dl(waypoints[wp1].pose.pose.position,
                        waypoints[i].pose.pose.position)
             wp1 = i
