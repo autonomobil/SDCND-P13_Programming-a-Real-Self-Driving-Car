@@ -48,12 +48,6 @@ class Controller(object):
 
         current_vel=self.vel_lpf.filt(current_vel)
 
-        #rospy.logwarn("Angular vel:(0)",format(angular_vel))
-        #rospy.logwarn("Target velocity:(0)",format(linear_vel))
-        #rospy.logwarn("Target angular veloctity:(0)",format(angular_vel))
-        #rospy.logwarn("Current velocity:(0)",format(current_vel))
-        #rospy.logwarn("Filtered velocity:(0)",format(self.vel_lpf.get()))
-
         steering      = self.yaw_controller.get_steering(linear_vel,angular_vel,current_vel)
 
         vel_error     = linear_vel - current_vel
@@ -69,7 +63,7 @@ class Controller(object):
         ##[6:38]
         if linear_vel== 0. and current_vel < 0.1:
             throttle = 0
-            brake    = 400 #N*m  - to hold the car in plave if we are stopped at a light Accelatione lm/s^2
+            brake    = 400 
 
         elif throttle <.1 and vel_error < 0:
             throttle= 0
