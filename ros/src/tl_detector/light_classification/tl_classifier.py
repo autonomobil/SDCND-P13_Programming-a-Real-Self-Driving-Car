@@ -19,9 +19,9 @@ class TLClassifier(object):
     def __init__(self, real_world):
         # load classifier
         if real_world:
-            sess, _ = load_graph('models/real_model.pb')
+            sess, _ = load_graph('models/model_real.pb')
         else:
-            sess, _ = load_graph('models/sim_model.pb')
+            sess, _ = load_graph('models/model_sim.pb')
 
         self.sess = sess
         # Define input and output tensors for session
